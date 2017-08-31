@@ -1,0 +1,262 @@
+(define (domain pandora)
+
+(:requirements :typing :conditional-effects :negative-preconditions :disjunctive-preconditions)
+
+(:types
+	waypoint
+	robot key - locatable
+	level
+	state
+	knowledgebase
+)
+
+(:predicates
+	(at ?l - locatable ?wp - waypoint ?s - state)
+	(Rat ?l - locatable ?wp - waypoint ?s - state)
+	(has ?k - key ?s - state)
+	(Rhas ?k - key ?s - state)
+	(part-of ?s - state ?kb - knowledgebase)
+	(current_kb ?kb - knowledgebase)
+	(parent ?kb ?kb2 - knowledgebase)
+
+	;; Bookkeeping predicates.
+	(next ?l ?l2 - level)
+	(lev ?l - LEVEL)
+	(m ?s - STATE)
+	(stack ?s - STATE ?l - LEVEL)
+	(next ?l ?l2 - LEVEL)
+	(resolve-axioms)
+)
+
+(:constants
+	; All the waypoints.
+	wp0 - waypoint
+	wp1 - waypoint
+	wp2 - waypoint
+	wp3 - waypoint
+	wp4 - waypoint
+
+	; The keys.
+	key0 - key
+	key1 - key
+
+	; The robot.
+	turtlebot - robot
+
+	; All the states.
+	s0 - STATE
+	s1 - STATE
+	s2 - STATE
+	s3 - STATE
+
+	; The knowledge bases
+	kb_root - knowledgebase
+	kb_key0 - knowledgebase
+	kb_key1 - knowledgebase
+)
+
+;; Action to move the Turtlebot.
+(:action navigate
+	:parameters (?r - robot ?from ?to - waypoint ?kb - knowledgebase)
+	:precondition (and
+		;; For every state ?s
+		(Rat ?r ?from ?s)
+
+;;		(current_kb ?kb)
+	)
+	:effect (and
+		;; For every state ?s
+		(when (m ?s)
+			(not (at ?r ?from ?s))
+			(at ?r ?to ?s)
+
+			;; This optimises the search as it does not require a raminificate action to discover these facts.
+			(not (Rat ?r ?from ?s))
+			(Rat ?r ?to ?s)
+		)
+	)
+)
+
+;; Pick up a key.
+(:action pickup
+	:parameters (?k - key ?r - robot ?wp - waypoint)
+	:precondition (and
+		;; For every state ?s
+		(Rat ?r ?wp ?s)
+		(Rat ?key ?wp ?s)
+	)
+	:effect (and
+		;; For every state ?s
+		(when (m ?s)
+			(not (at ?key ?sp ?s))
+			(has ?key ?s)
+
+			;; This optimises the search as it does not require a raminificate action to discover these facts.
+			(not (Rat ?key ?sp ?s))
+			(Rhas ?key ?s)
+		)
+	)
+)
+
+;; Sense for the key.
+(:action sense
+	:parameters (?k - key ?r - robot ?wp - waypoint ?l ?l2 - level)
+	:precondition (and
+		(next ?l ?l2)
+		(lev ?l)
+
+		;; For every state ?s
+		(Rat ?r ?wp ?s)
+
+		;; This action is only applicable if there are world states where the outcome can be different.
+		(exists (?s - state) (and (m ?s) (Rat ?k ?wp ?s)
+		(exists (?s - state) (and (m ?s) (not (Rat ?k ?wp ?s))
+	)
+
+	effect: (and
+		(not (lev ?l))
+		(lev ?l2)
+
+		;; For every state ?s
+		(when (and (m ?s) (not (Rat ?k ?wp ?s)))
+			(and (stack ?s ?l) (not (m ?s)))
+		)
+
+		(resolve-axioms)
+	)
+)
+
+;; Exit the current branch.
+(:action pop
+	:parameters (?l ?l2 - level)
+	:precondition (and
+		(lev ?l)
+		(next ?l2 ?l)
+		(not (resolve-axioms))
+	)
+	:effect (and 
+		(not (lev ?l))
+		(lev ?l2)
+		(resolve-axioms)
+	 	(when (m s0) 
+			(not (m s0))
+		)
+	 	(when (stack s0 ?l2)
+			(and 
+				(m s0)
+				(not (stack s0 ?l2))
+			)
+		)
+	)
+)
+
+;; Resolve the axioms manually.
+(:action raminificate
+	:parameters ()
+	:precondition (resolve-axioms)
+	:effect (and 
+		;; For every state ?s
+		(when (or (at robot wp0 ?s) (not (m ?s)))
+			(Rat robot wp0 ?s)
+		)
+		(when (or (at robot wp1 ?s) (not (m ?s)))
+			(Rat robot wp1 ?s)
+		)
+		(when (or (at robot wp2 ?s) (not (m ?s)))
+			(Rat robot wp2 ?s)
+		)
+		(when (or (at robot wp3 ?s) (not (m ?s)))
+			(Rat robot wp3 ?s)
+		)
+		(when (or (at robot wp4 ?s) (not (m ?s)))
+			(Rat robot wp4 ?s)
+		)
+
+		(when (or (have key0 ?s) (not (m ?s)))
+			(Rhave key0 ?s)
+		)
+		(when (or (have key1 ?s) (not (m ?s)))
+			(Rhave key1 ?s)
+		)
+
+		(when (or (at key0 wp0 ?s) (not (m ?s)))
+			(Rat key0 wp0 ?s)
+		)
+		(when (or (at key0 wp1 ?s) (not (m ?s)))
+			(Rat key0 wp1 ?s)
+		)
+		(when (or (at key0 wp2 ?s) (not (m ?s)))
+			(Rat key0 wp2 ?s)
+		)
+		(when (or (at key0 wp3 ?s) (not (m ?s)))
+			(Rat key0 wp3 ?s)
+		)
+		(when (or (at key0 wp4 ?s) (not (m ?s)))
+			(Rat key0 wp4 ?s)
+		)
+
+		(when (or (at key1 wp0 ?s) (not (m ?s)))
+			(Rat key1 wp0 ?s)
+		)
+		(when (or (at key1 wp1 ?s) (not (m ?s)))
+			(Rat key1 wp1 ?s)
+		)
+		(when (or (at key1 wp2 ?s) (not (m ?s)))
+			(Rat key1 wp2 ?s)
+		)
+		(when (or (at key1 wp3 ?s) (not (m ?s)))
+			(Rat key1 wp3 ?s)
+		)
+		(when (or (at key1 wp4 ?s) (not (m ?s)))
+			(Rat key1 wp4 ?s)
+		)
+	)
+)
+
+;; Move 'down' into the knowledge base.
+(:action assume_knowledge
+	:parameters (?old_kb ?new_kb - knowledgebase)
+	:precondition (and
+		(current_kb ?old_kb)
+		(parent ?old_kb ?new_kb)
+	)
+	:effect (and
+		(not (current_kb ?old_kb))
+		(current_kb ?new_kb)
+
+		;; Now we need to delete all knowledge from the old_kb and insert it to
+		;; the new_kb level.
+
+		;; For every state ?s, ?s2
+		(when (and (part-of ?s ?old_kb) (Kat robot wp0 ?s) (part-of ?s2 ?new_kb))
+			(and 
+				(not (Kat robot wp0 ?s))
+				(not (at robot wp0 ?s))
+				(Kat robot wp0 ?s2)
+				(at robot wp0 ?s2)
+			)
+		)		
+	)
+)
+
+;; Move 'up' into the knowledge base.
+(:action shed_knowledge
+	:parameters (?old_kb ?new_kb - knowledgebase)
+	:precondition (and
+		(current_kb ?old_kb)
+		(parent ?new_kb ?old_kb)
+	)
+	:effect (and
+		(not (current_kb ?old_kb))
+		(current_kb ?new_kb)
+
+		;; Now we need to push all knowledge that is true for all states part of 
+		;; kb_old up to kb_new.
+
+	)
+)
+
+
+
+)
+

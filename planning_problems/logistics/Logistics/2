@@ -1,0 +1,38 @@
+(define (problem logistics-problem)
+(:domain logistics)
+(:objects
+	l0 - LEVEL
+	l1 - LEVEL
+)
+
+(:init
+	(resolve-axioms)
+	(lev l0)
+	(next l0 l1)
+	(in-city-a airport_0_city_0 city_0)
+	(in-city-l loc_0_city_0 city_0)
+	(in-city-a airport_0_city_1 city_1)
+	(in-city-l loc_0_city_1 city_1)
+	(in-city-t truck_0_city_0 city_0)
+	(in-city-t truck_0_city_1 city_1)
+	(current_kb basis_kb)
+	(part-of basic basis_kb)
+	(m basic)
+	(at-tl truck_0_city_0 loc_0_city_0 basic)
+	(at-tl truck_0_city_1 loc_0_city_1 basic)
+	(at-aa airplane airport_0_city_0 basic)
+	(parent basis_kb kb_package_city_0_0)
+	(parent basis_kb kb_package_city_1_0)
+	(part-of s_package_city_0_0_loc_0_city_0 kb_package_city_0_0)
+	(at-ol package_city_0_0 loc_0_city_0 s_package_city_0_0_loc_0_city_0)
+	(part-of s_package_city_1_0_loc_0_city_1 kb_package_city_1_0)
+	(at-ol package_city_1_0 loc_0_city_1 s_package_city_1_0_loc_0_city_1)
+)
+(:goal (and
+;;	(at-oa package_city_0_0 airport_0_city_1 basic)
+;;	(at-oa package_city_1_0 airport_0_city_0 basic)
+	(at-oa package_city_1_0 airport_0_city_0 s_package_city_1_0_loc_0_city_1)
+	(current_kb basis_kb)
+)
+)
+)
